@@ -1,0 +1,8 @@
+[package]
+name = "jitterbug"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# the standard trait for RNGs
+rand_core = "0.6"
