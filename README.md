@@ -17,14 +17,17 @@ use jitterbug::Jitterbug;
 use rand_core::Rng;
 
 fn main() {
-    // create a new jitterbug, and unwrap for direct `Infallable` `Result`
+    // create a new jitterbug, and unwrap for direct
+    // `Infallable` `Result`
     let mut jitter_rng = Jitterbug::new().unwrap_err();
 
     // generate a new `u64` number
-    println!("random number: {}", jitter_rng.next_u64());
+    let random_number = jitter_rng.next_u64();
+    println!("random number: {random_number}");
 
     // generate a new number in a range
-    println!("random number between 0 and 100: {}", jitter_rng.gen_range(0..=100));
+    let range_number = jitter_rng.gen_range(0..=100);
+    println!("random number between 0 and 100: {range_number}");
 }
 ```
 
