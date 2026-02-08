@@ -10,8 +10,8 @@ documentation = "https://docs.rs/jitterbug"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/evangipson/jitterbug"
-keywords = ["random", "random-number", "random-generation", "math", "cryptography"]
-categories = ["random", "random-generation", "random-numbers"]
+keywords = ["random", "random-number", "random-generation", "math", "mathematics", "cryptography"]
+categories = ["cryptography", "mathematics", "security"]
 
 [dependencies]
 # the standard trait for RNGs
