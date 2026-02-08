@@ -10,7 +10,7 @@ documentation = "https://docs.rs/jitterbug"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/evangipson/jitterbug"
-keywords = ["random", "random-number", "random-generation", "math", "mathematics", "cryptography"]
+keywords = ["random", "random-number", "random-generation", "mathematics", "cryptography"]
 categories = ["cryptography", "mathematics", "security"]
 
 [dependencies]
