@@ -40,6 +40,21 @@ impl Default for Jitterbug {
 
 /// Implement [`Jitterbug`]
 impl Jitterbug {
+    /// Creates a `new` [`Jitterbug`] generator.
+    /// ## Usage
+    /// Use [`new`](Jitterbug::new) to create a [`Jitterbug`]:
+    /// ```rust
+    /// use jitterbug::Jitterbug;
+    /// use rand_core::Rng;
+    ///
+    /// // create a new jitterbug, and unwrap for direct
+    /// // `Infallable` `Result`
+    /// let mut jitter_rng = Jitterbug::new();
+    ///
+    /// // generate a new `u64` number
+    /// let random_number = jitter_rng.next_u64();
+    /// println!("random number: {random_number}");
+    /// ```
     pub fn new() -> Self {
         let running = Arc::new(AtomicBool::new(true));
         let r = running.clone();

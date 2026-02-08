@@ -1,4 +1,4 @@
-# rquant
+# jitterbug
 ![rustc (with version)](https://img.shields.io/badge/rustc-1.56.0+-blue?style=for-the-badge&logo=rust) ![crate.rs (with version)](https://img.shields.io/crates/v/jitterbug?style=for-the-badge&logo=hackthebox&logoColor=white) ![docs.rs (with version)](https://img.shields.io/docsrs/jitterbug/latest?style=for-the-badge&logo=rust)
 
 A true random number generator based on CPU jitter written in rust.
@@ -6,7 +6,7 @@ A true random number generator based on CPU jitter written in rust.
 It allows true random number generation without seeding.
 
 ## Getting Started
-1. Add jitterbug to your `Cargo.toml` file
+1. Add the latest version of `jitterbug` to your `Cargo.toml` file
 1. Use `Jitterbug::new()` to create a new jitterbug
 
 ## Examples
@@ -19,15 +19,11 @@ use rand_core::Rng;
 fn main() {
     // create a new jitterbug, and unwrap for direct
     // `Infallable` `Result`
-    let mut jitter_rng = Jitterbug::new().unwrap_err();
+    let mut jitter_rng = Jitterbug::new();
 
     // generate a new `u64` number
     let random_number = jitter_rng.next_u64();
     println!("random number: {random_number}");
-
-    // generate a new number in a range
-    let range_number = jitter_rng.gen_range(0..=100);
-    println!("random number between 0 and 100: {range_number}");
 }
 ```
 

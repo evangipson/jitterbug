@@ -1,7 +1,17 @@
 [package]
 name = "jitterbug"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
+authors = ["Evan Gipson <evangipson@gmail.com>"]
+exclude = [".gitignore"]
+description = "A true random number generator based on CPU execution jitter."
+homepage = "https://docs.rs/crate/jitterbug"
+documentation = "https://docs.rs/jitterbug"
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/evangipson/jitterbug"
+keywords = ["random", "random-number", "random-generation", "math", "cryptography"]
+categories = ["random", "random-generation", "random-numbers"]
 
 [dependencies]
 # the standard trait for RNGs
