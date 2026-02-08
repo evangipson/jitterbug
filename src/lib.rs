@@ -1,6 +1,7 @@
-use rand_core::{CryptoRng, Error, RngCore};
+use rand_core::{TryCryptoRng, TryRng};
 use std::arch::x86_64::_rdtsc;
 use std::collections::hash_map::DefaultHasher;
+use std::convert::Infallible;
 use std::hash::{Hash, Hasher};
 use std::hint::black_box;
 use std::sync::Arc;
@@ -25,6 +26,9 @@ pub struct Jitterbug {
     /// [`index`](Jitterbug::index) is the current index of the
     /// [`buffer`](Jitterbug::buffer).
     index: usize,
+    /// [`last_raw`](Jitterbug::last_raw) is the last unsigned 64-bit integer
+    /// that was generated.
+    last_raw: u64,
 }
 
 /// Implement [`Default`] for [`Jitterbug`]
@@ -36,7 +40,6 @@ impl Default for Jitterbug {
 
 /// Implement [`Jitterbug`]
 impl Jitterbug {
-    /// Creates a new instance and starts the background disruptor thread.
     pub fn new() -> Self {
         let running = Arc::new(AtomicBool::new(true));
         let r = running.clone();
@@ -44,9 +47,9 @@ impl Jitterbug {
         let disruptor = thread::spawn(move || {
             let mut junk = vec![0u64; 1024];
             while r.load(Ordering::Relaxed) {
-                junk.iter_mut().take(1024).for_each(|x| {
-                    *x = x.wrapping_add(BACKGROUND_NOISE);
-                });
+                junk.iter_mut()
+                    .take(1024)
+                    .for_each(|x| *x = x.wrapping_add(BACKGROUND_NOISE));
             }
         });
 
@@ -55,13 +58,13 @@ impl Jitterbug {
             disruptor: Some(disruptor),
             buffer: [0u8; 32],
             index: 32,
+            last_raw: 0,
         };
 
         rng.harvest();
         rng
     }
 
-    /// Harvests entropy by measuring subtle timing variations in CPU cycles.
     fn harvest(&mut self) {
         let mut pool = Vec::with_capacity(256);
         for _ in 0..256 {
@@ -71,11 +74,16 @@ impl Jitterbug {
                     black_box(0);
                 }
                 let t2 = _rdtsc();
-                pool.push(t2.wrapping_sub(t1));
+                let delta = t2.wrapping_sub(t1);
+
+                if delta == self.last_raw {
+                    thread::yield_now();
+                }
+                self.last_raw = delta;
+                pool.push(delta);
             }
         }
 
-        // whiten the entropy into 4x 64-bit blocks
         for salt in 0..4u64 {
             let mut hasher = DefaultHasher::new();
             (salt, &pool).hash(&mut hasher);
@@ -86,6 +94,37 @@ impl Jitterbug {
     }
 }
 
+/// Implement [`TryRng`] for [`Jitterbug`]
+impl TryRng for Jitterbug {
+    type Error = Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        let mut bytes = [0u8; 4];
+        self.try_fill_bytes(&mut bytes)?;
+        Ok(u32::from_le_bytes(bytes))
+    }
+
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        let mut bytes = [0u8; 8];
+        self.try_fill_bytes(&mut bytes)?;
+        Ok(u64::from_le_bytes(bytes))
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
+        for byte in dest.iter_mut() {
+            if self.index >= 32 {
+                self.harvest();
+            }
+            *byte = self.buffer[self.index];
+            self.index += 1;
+        }
+        Ok(())
+    }
+}
+
+/// Implement [`TryCryptoRng`] for [`Jitterbug`]
+impl TryCryptoRng for Jitterbug {}
+
 /// Implement [`Drop`] for [`Jitterbug`]
 impl Drop for Jitterbug {
     fn drop(&mut self) {
@@ -95,36 +134,3 @@ impl Drop for Jitterbug {
         }
     }
 }
-
-/// Implement [`RngCore`] for [`Jitterbug`]
-impl RngCore for Jitterbug {
-    fn next_u32(&mut self) -> u32 {
-        let mut bytes = [0u8; 4];
-        self.fill_bytes(&mut bytes);
-        u32::from_le_bytes(bytes)
-    }
-
-    fn next_u64(&mut self) -> u64 {
-        let mut bytes = [0u8; 8];
-        self.fill_bytes(&mut bytes);
-        u64::from_le_bytes(bytes)
-    }
-
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        for byte in dest.iter_mut() {
-            if self.index >= 32 {
-                self.harvest();
-            }
-            *byte = self.buffer[self.index];
-            self.index += 1;
-        }
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.fill_bytes(dest);
-        Ok(())
-    }
-}
-
-/// Implement [`CryptoRng`] for [`Jitterbug`]
-impl CryptoRng for Jitterbug {}

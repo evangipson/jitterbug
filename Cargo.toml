@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 # the standard trait for RNGs
-rand_core = "0.6"
+rand_core = "0.10.0"
